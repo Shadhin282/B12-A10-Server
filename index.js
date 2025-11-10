@@ -43,7 +43,11 @@ async function run() {
       res.send(result);
     })
 
-
+     app.get('/recent-properties', async (req, res) => {
+          const result = await propertiesCollection.find().sort({postedDate: 'desc'}).limit(6).toArray()
+          
+      res.send(result)
+    })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
