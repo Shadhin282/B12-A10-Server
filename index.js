@@ -47,7 +47,53 @@ async function run() {
           const result = await propertiesCollection.find().sort({postedDate: 'desc'}).limit(6).toArray()
           
       res.send(result)
+     })
+    
+    app.post('/properties', async (req, res) => {
+      const newProperty = req.body;
+      const result = await propertiesCollection.insertOne(newProperty);
+      res.send(result)
     })
+    
+    app.patch('/properties/:id', async (req, res) => {
+      const {id} = req.params;
+      const query = { _id: new ObjectId(id) };
+      const updateProperty = req.body;
+      const update = {
+        $set: {
+          propertyName : updateProperty.propertyName,
+          description : updateProperty.description,
+          category : updateProperty.category,
+          location : updateProperty.location,
+          propertyPrice : updateProperty.propertyPrice,
+          imageLinkInput : updateProperty.imageLinkInput
+        }
+      }
+      const result = await propertiesCollection.updateOne(query, update);
+      res.send(result);
+    })
+
+    app.delete('/properties/:id', async (req, res) => {
+      const { id } = req.params;
+      const query = { _id: new ObjectId(id) };
+      const result = await propertiesCollection.deleteOne(query);
+      res.send(result)
+    })
+
+    app.get('/myProperties', async (req, res) => {
+            const email = req.query.email;
+            const query = {}
+            if (email) {
+                query.email = email;
+            } else {
+              res.send('There is no email request')
+            }
+
+            const cursor = propertiesCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result)
+    })
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
