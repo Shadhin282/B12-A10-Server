@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
-
+require('dotenv').config()
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -11,7 +11,7 @@ app.use(express.json())
 
 
 
-const uri = "mongodb+srv://real-state-homeNest:0DS6YfWfmotowFnt@firstmongodb.syucqne.mongodb.net/?appName=FirstMongoDB";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@firstmongodb.syucqne.mongodb.net/?appName=FirstMongoDB`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -32,12 +32,18 @@ async function run() {
 
     app.get('/properties', async (req, res) => {
       const data = req.body;
-      const result = await propertiesCollection.find().toArray();
+      const result = await propertiesCollection.find().sort({propertyPrice: 'desc'}).toArray();
+      res.send(result)
+    })
+
+    app.get('/search', async (req, res) => {
+      const data = req.query.search;
+      const result = await propertiesCollection.find({propertyName: {$regex:data, $options: 'i'}}).toArray();
       res.send(result)
     })
 
     app.get('/properties/:id', async (req, res) => {
-      const { id } = req.params;
+      const id = req.params;
       const query = {_id: new ObjectId(id)};
       const result = await propertiesCollection.findOne(query)
       res.send(result);
@@ -75,6 +81,7 @@ async function run() {
 
     app.delete('/properties/:id', async (req, res) => {
       const { id } = req.params;
+      
       const query = { _id: new ObjectId(id) };
       const result = await propertiesCollection.deleteOne(query);
       res.send(result)
